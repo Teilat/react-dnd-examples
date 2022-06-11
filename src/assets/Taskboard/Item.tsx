@@ -1,22 +1,20 @@
 import React from "react";
 import {COLUMN_NAMES, StyledCard, TaskboardItemCardTitle} from "../../constants";
-import {ProjectItem} from "../../tasks";
+import {TaskItem} from "../../tasks";
 import BaseTooltip from "../../BaseTooltip";
 
 export interface TaskboardItemCardProps {
-    item: ProjectItem;
+    item: TaskItem;
     isDragging: boolean;
-    title: COLUMN_NAMES;
-    onEdit: (itemToEdit: ProjectItem) => void;
+    onEdit: (itemToEdit: TaskItem) => void;
     onDelete: (args: {
         status: COLUMN_NAMES;
-        itemToDelete: ProjectItem;
+        itemToDelete: TaskItem;
     }) => void;
 }
 
 export const MovableItem = ({
     item,
-    title,
     isDragging,
     onEdit,
     onDelete,
@@ -25,10 +23,10 @@ export const MovableItem = ({
         <StyledCard
             size="small"
             title={
-                <BaseTooltip overlay={item.name}>
+                <BaseTooltip overlay={item.title}>
                     <span>
                         <TaskboardItemCardTitle level={5} ellipsis={{rows: 2}}>
-                          {item.name}
+                          {item.title}
                         </TaskboardItemCardTitle>
                     </span>
                 </BaseTooltip>

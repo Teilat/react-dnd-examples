@@ -1,14 +1,23 @@
 import {geekblue, red} from '@ant-design/colors';
 import styled from "styled-components";
 import Layout, {Content, Header} from "antd/lib/layout/layout";
-import {Card, Menu, Typography} from "antd";
+import {Card, Typography} from "antd";
+import {TaskboardItemCardProps} from "./assets/Taskboard/Item";
+import {TaskItem} from "./tasks";
 
 export enum COLUMN_NAMES {
-    DO_IT = 'Do it',
+    TO_DO = 'To Do',
     IN_PROGRESS = 'In Progress',
     AWAITING_REVIEW = 'Awaiting review',
     DONE = 'Done',
 }
+
+export type TaskboardColProps = Pick<TaskboardItemCardProps,
+    'onEdit' | 'onDelete'> & {
+    items: TaskItem[];
+    title: COLUMN_NAMES;
+    onClickAdd?: VoidFunction;
+};
 
 export const colors = {
     primary: geekblue,
@@ -33,6 +42,7 @@ export const StyledContent = styled(Content)`
   background-color: ${colors.primary[6]};
 `;
 
+
 export const TaskboardColRoot = styled(Card)`
   user-select: none;
   flex: 1;
@@ -49,7 +59,7 @@ export const TaskboardColRoot = styled(Card)`
   }
 `;
 
-export const DeleteMenuItem = styled(Menu.Item)`
+export const DeleteMenuItem = styled.div`
   color: ${red.primary};
 `;
 

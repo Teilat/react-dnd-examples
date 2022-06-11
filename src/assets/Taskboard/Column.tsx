@@ -3,11 +3,11 @@ import React from "react";
 import {Button} from "antd";
 import {Draggable, Droppable} from "react-beautiful-dnd";
 import {MovableItem, TaskboardItemCardProps} from "./Item";
-import {ProjectItem} from "../../tasks";
+import {TaskItem} from "../../tasks";
 
 export type TaskboardColProps = Pick<TaskboardItemCardProps,
     'onEdit' | 'onDelete'> & {
-    items: ProjectItem[];
+    items: TaskItem[];
     title: COLUMN_NAMES;
     onClickAdd?: VoidFunction;
 };
@@ -23,7 +23,7 @@ export const Column = ({
         <TaskboardColRoot
             title={`${title} (${items.length})`}
             extra={
-                <Button type="primary">
+                <Button type="primary" onClick={onClickAdd}>
                     Add
                 </Button>
             }>
@@ -47,8 +47,7 @@ export const Column = ({
                                                     item={item}
                                                     isDragging={snapshot.isDragging}
                                                     onDelete={onDelete}
-                                                    onEdit={onEdit}
-                                                    title={title}/>
+                                                    onEdit={onEdit}/>
                                             </div>
                                         )}
                                     </Draggable>

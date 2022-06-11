@@ -1,98 +1,40 @@
 import {Typography, Button} from 'antd';
-import React, {useState} from 'react';
-import {DragDropContext, DragDropContextProps} from 'react-beautiful-dnd';
+import {BrowserRouter, Route, Routes, useNavigate} from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
 import './assets/styles/App.css';
-import "antd/dist/antd.css";
-import {COLUMN_NAMES, StyledLayout, StyledHeader, StyledContent, TaskboardRoot, TaskboardContent} from "./constants";
-import {ProjectItem, tasks} from "./tasks";
-import produce from "immer";
-import {Column, TaskboardColProps} from "./assets/Taskboard/Column";
-import {MovableItem} from "./assets/Taskboard/Item";
+import "antd/dist/antd.min.css";
+import {v4 as uuid} from 'uuid';
+import { parse as uuidParse } from 'uuid';
+import {
+    StyledLayout,
+    StyledHeader,
+} from "./constants";
+import {Taskboard} from "./assets/Taskboard/Taskboard";
+import Login from "./assets/Login";
+import Cookies from 'js-cookie'
 
-export const App = () => {
+export function App() {
+    let [token, setToken] = useState();
+    const [isLoaded, setLoaded] = useState(false)
 
-    const [items, setItems] = useState(tasks);
-
-    const onDragEnd: DragDropContextProps['onDragEnd'] = ({
-        source,
-        destination,
-    }) => {
-        setItems((current) =>
-            produce(current, (draft) => {
-                // dropped outside the list
-                if (!destination) {
-                    return;
-                }
-                const [removed] = draft[
-                    source.droppableId as COLUMN_NAMES
-                    ].splice(source.index, 1);
-                draft[destination.droppableId as COLUMN_NAMES].splice(
-                    destination.index,
-                    0,
-                    removed
-                );
-            })
-        );
-    }
-
-    const [isModalVisible, setIsModalVisible] = useState(false);
-
-    const [itemToEdit, setItemToEdit] = useState<ProjectItem | null>(null);
-
-
-    const openTaskItemModal = (itemToEdit: ProjectItem | null) => {
-        setItemToEdit(itemToEdit);
-        setIsModalVisible(true);
-    };
-
-    const closeTaskItemModal = () => {
-        setItemToEdit(null);
-        setIsModalVisible(false);
-    };
-
-    const handleDelete: TaskboardColProps['onDelete'] = ({
-        status,
-        itemToDelete,
-    }) =>
-        setItems((current) =>
-            produce(current, (draft) => {
-                draft[status] = draft[status].filter(
-                    (item) => item.id !== itemToDelete.id
-                );
-            })
-        );
+    useEffect(() => {
+        setToken(Cookies.get('token'));
+        setLoaded(true);
+    })
+    const pId = "9867090f-7eda-f34d-92d2-e022f03ba8b0"
 
     return (
         <>
             <StyledLayout>
-                <StyledHeader>
-                    <Typography.Title level={3} type="secondary">
-                        Drag & Drop Taskboard
-                    </Typography.Title>
-                    <Button type="primary">Primary Button</Button>
-                </StyledHeader>
-                <StyledContent>
-                    <DragDropContext onDragEnd={onDragEnd}>
-                        <TaskboardRoot>
-                            <TaskboardContent>
-                                {Object.values(COLUMN_NAMES).map((status) => (
-                                    <Column
-                                        key={status}
-                                        title={status}
-                                        items={items[status]}
-                                        onClickAdd={
-                                            status === COLUMN_NAMES.DO_IT
-                                                ? () => openTaskItemModal(null)
-                                                : undefined
-                                        }
-                                        onDelete={handleDelete}
-                                        onEdit={null}/>
-                                ))}
-                            </TaskboardContent>
-                        </TaskboardRoot>
-                    </DragDropContext>
-                </StyledContent>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/login" element={<Login/>}/>
+                        <Route path="/dashboard" element={<div/>}/>
+                        <Route path="/taskboard" element={<Taskboard ProjectId={pId}/>}/>
+                    </Routes>
+                </BrowserRouter>
             </StyledLayout>
         </>
     );
+
 }

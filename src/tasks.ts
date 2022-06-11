@@ -1,57 +1,52 @@
 import {COLUMN_NAMES} from "./constants";
 import {v4 as uuid} from 'uuid';
 
-export interface ProjectItem {
+export interface TaskItem {
     // @ts-ignore
     id: uuid;
     // @ts-ignore
-    parentId: uuid;
-    name: string;
+    projectId: uuid;
+    title: string;
     description: string;
-    creationDate: number;
-    ownerId: uuid;
+    column: string;
 }
 
-export type TaskboardData = Record<COLUMN_NAMES, ProjectItem[]>;
+export type TaskboardData = Record<COLUMN_NAMES, TaskItem[]>;
 
-export let tasks: TaskboardData =
+export const tasks: TaskboardData =
     {
-        [COLUMN_NAMES.DO_IT]:
+        [COLUMN_NAMES.TO_DO]:
             [{
                 id: uuid(),
-                name: 'Item 1',
-                parentId: uuid(),
+                title: 'Item 1',
+                projectId: uuid(),
                 description: "desc",
-                creationDate: Date.now(),
-                ownerId: uuid()
+                column: "TO_DO",
             }],
         [COLUMN_NAMES.IN_PROGRESS]:
             [
                 {
                     id: uuid(),
-                    name: 'Item 2',
-                    parentId: uuid(),
+                    title: 'Item 2',
+                    projectId: uuid(),
                     description: "desc",
-                    creationDate: Date.now(),
-                    ownerId: uuid()
+                    column: "IN_PROGRESS",
                 },
                 {
                     id: uuid(),
-                    name: 'Item 4',
-                    parentId: uuid(),
+                    title: 'Item 4',
+                    projectId: uuid(),
                     description: "desc",
-                    creationDate: Date.now(),
-                    ownerId: uuid()
+                    column: "IN_PROGRESS",
                 }
             ],
         [COLUMN_NAMES.DONE]:
             [{
                 id: uuid(),
-                name: 'Item 3',
-                parentId: uuid(),
+                title: 'Item 3',
+                projectId: uuid(),
                 description: "desc",
-                creationDate: Date.now(),
-                ownerId: uuid()
+                column: "DONE",
             }],
         [COLUMN_NAMES.AWAITING_REVIEW]:
             [],
