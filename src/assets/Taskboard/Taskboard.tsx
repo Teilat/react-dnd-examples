@@ -7,7 +7,7 @@ import {
 } from "../../constants";
 import {Column} from "./Column";
 import React, {useEffect, useMemo, useState} from "react";
-import {TaskboardData, TaskItem} from "../../tasks";
+import {Project, TaskboardData, TaskItem} from "../../tasks";
 import produce from "immer";
 import TaskboardItemFormModal from "./TaskboardItemFormModal";
 import {useNavigate} from "react-router-dom";
@@ -20,12 +20,12 @@ let data: TaskboardData = {
 }
 
 interface TaskboardProps {
-    ProjectId: number,
+    Project: Project | null,
 }
 
 function Taskboard({
-                       ProjectId,
-                   }: TaskboardProps) {
+    Project,
+}: TaskboardProps) {
 
     const [items, setItems] = useState<TaskboardData>(data);
 
@@ -39,9 +39,15 @@ function Taskboard({
     const navigate = useNavigate()
 
     useEffect(() => {
+        setLoaded(false)
+        setReload(false)
         setItems(null)
 
-        fetch(`http://localhost:8080/project/task?id=${ProjectId}`, {
+        if (Project === null){
+           return
+        }
+
+        fetch(`http://localhost:8080/project/task?id=${Project.id}`, {
             method: 'GET',
             credentials: "include",
             headers: {
@@ -53,7 +59,7 @@ function Taskboard({
                 if (response.ok) {
                     return response.text()
                 } else {
-                    if (JSON.parse(await response.text())["content"] == "Please login first") {
+                    if (JSON.parse(await response.text())["content"] === "Please login first") {
                         navigate("/login", {replace: true})
                     }
                     throw response
@@ -105,7 +111,7 @@ function Taskboard({
                 setReload(false)
             })
 
-    }, [ProjectId, Reload]);
+    }, [Project, Reload]);
 
     const handleCreateTask = (item: TaskItem) => {
         fetch(`http://localhost:8080/task`, {
@@ -142,7 +148,7 @@ function Taskboard({
     const onDragEnd: DragDropContextProps['onDragEnd'] = ({
                                                               source,
                                                               destination,
-                                                          }) => {
+                                                          draggableId}) => {
         setItems((current) =>
             produce(current, (draft) => {
                 // dropped outside the list
@@ -159,6 +165,19 @@ function Taskboard({
                 );
             })
         );
+        fetch(`http://localhost:8080/task/column`, {
+            method: 'PATCH',
+            credentials: "include",
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id:parseInt(draggableId),column:destination.droppableId})
+        }).then((res) => {
+            if (res.ok) {
+
+            }
+        })
     }
 
     const openTaskItemModal = (itemToEdit: TaskItem | null) => {
@@ -210,7 +229,7 @@ function Taskboard({
                                             : undefined
                                     }
                                     onDelete={handleDelete}
-                                    onEdit={closeTaskItemModal}/>
+                                    onEdit={openTaskItemModal}/>
                             ))}
                         </TaskboardContent>
                     </TaskboardRoot>
@@ -235,7 +254,7 @@ function Taskboard({
                                     // Adding new item as "to do"
                                     let item: TaskItem = {
                                         id: 0,
-                                        projectId: ProjectId,
+                                        projectId: Project.id,
                                         title: values.title,
                                         description: values.description,
                                         column: COLUMN_NAMES.TO_DO

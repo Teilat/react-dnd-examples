@@ -1,13 +1,19 @@
 import {COLUMN_NAMES} from "./constants";
 
 export interface TaskItem {
-    // @ts-ignore
     id: number;
-    // @ts-ignore
     projectId: number;
     title: string;
     description: string;
     column: string;
+}
+
+export interface Project {
+    id: number;
+    name: string;
+    description: string;
+    parentId: number;
+    ownerId: number;
 }
 
 export type TaskboardData = Record<COLUMN_NAMES, TaskItem[]>;

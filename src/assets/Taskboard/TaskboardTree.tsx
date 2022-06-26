@@ -8,6 +8,7 @@ import {
 import Cookies from 'js-cookie'
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
+import {Project} from "../../tasks";
 
 interface TaskboardTreeProps {
     ProjectId: number,
@@ -19,8 +20,7 @@ function TaskboardTree({
     const [treeItems, setTreeItems] = useState(null)
     const [expandedKeys, setExpandedKeys] = useState([]);
     const [autoExpandParent, setAutoExpandParent] = useState(true);
-    const dataList = [];
-    const defaultData = [];
+    const [project, setProject] = useState<Project>(null);
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -46,7 +46,7 @@ function TaskboardTree({
             .then(res => {
                 setTreeItems(JSON.parse(res))
             })
-    },[])
+    }, [navigate])
 
     const onExpand = (newExpandedKeys) => {
         setExpandedKeys(newExpandedKeys);
@@ -71,8 +71,28 @@ function TaskboardTree({
         return parentKey;
     };
 
-    const onSelect = (selectedKeys, info) => {
-        console.log('selected', selectedKeys, info);
+    const onSelect = (selectedKeys) => {
+        fetch(`http://localhost:8080/project?id=${selectedKeys}`, {
+            method: 'GET',
+            credentials: "include",
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(async response => {
+                if (response.ok) {
+                    return response.text()
+                } else {
+                    if (JSON.parse(await response.text())["content"] === "Please login first") {
+                        navigate("/login", {replace: true})
+                    }
+                    throw response
+                }
+            })
+            .then(res => {
+                setProject(JSON.parse(res))
+            })
     };
 
     const handleLogout = () => {
@@ -94,18 +114,19 @@ function TaskboardTree({
         <>
             <StyledHeader>
                 <Typography.Title level={3} type="secondary">
+                    {project ? project.name : 'Task tracker'}
                 </Typography.Title>
                 <Button type="primary" onClick={() => handleLogout()}>Logout</Button>
             </StyledHeader>
             <StyledContent>
-                    <Tree
-                        onExpand={onExpand}
-                        expandedKeys={expandedKeys}
-                        autoExpandParent={autoExpandParent}
-                        onSelect={onSelect}
-                        treeData={treeItems}
-                    />
-                <Taskboard ProjectId={ProjectId}/>
+                <Tree
+                    onExpand={onExpand}
+                    expandedKeys={expandedKeys}
+                    autoExpandParent={autoExpandParent}
+                    onSelect={onSelect}
+                    treeData={treeItems}
+                />
+                <Taskboard Project={project}/>
             </StyledContent>
         </>
     )
