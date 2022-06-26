@@ -1,11 +1,10 @@
 import {COLUMN_NAMES} from "./constants";
-import {v4 as uuid} from 'uuid';
 
 export interface TaskItem {
     // @ts-ignore
-    id: uuid;
+    id: number;
     // @ts-ignore
-    projectId: uuid;
+    projectId: number;
     title: string;
     description: string;
     column: string;
@@ -17,34 +16,34 @@ export const tasks: TaskboardData =
     {
         [COLUMN_NAMES.TO_DO]:
             [{
-                id: uuid(),
+                id: 1,
                 title: 'Item 1',
-                projectId: uuid(),
+                projectId: 1,
                 description: "desc",
                 column: "TO_DO",
             }],
         [COLUMN_NAMES.IN_PROGRESS]:
             [
                 {
-                    id: uuid(),
+                    id: 2,
                     title: 'Item 2',
-                    projectId: uuid(),
+                    projectId: 1,
                     description: "desc",
                     column: "IN_PROGRESS",
                 },
                 {
-                    id: uuid(),
+                    id: 4,
                     title: 'Item 4',
-                    projectId: uuid(),
+                    projectId: 1,
                     description: "desc",
                     column: "IN_PROGRESS",
                 }
             ],
         [COLUMN_NAMES.DONE]:
             [{
-                id: uuid(),
+                id: 3,
                 title: 'Item 3',
-                projectId: uuid(),
+                projectId: 1,
                 description: "desc",
                 column: "DONE",
             }],

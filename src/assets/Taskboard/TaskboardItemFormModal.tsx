@@ -1,44 +1,60 @@
-import {createRef, useEffect, useRef} from 'react';
-import {Modal, Form, Input} from 'antd';
-import {FormInstance} from 'antd/es/form';
-import {TaskItem} from "../../tasks";
+import {Modal, Form, Input} from "antd";
 import React from 'react';
 
-
-export const TaskboardItemFormModal = ({
+function TaskboardItemFormModal({
     visible,
     initialValues,
     onCancel,
     onOk,
-}) => {
-    const formRef = React.createRef<FormInstance>();
-
-
-    const onFinish = (values: any) => {
-        console.log(values);
-    };
+}) {
+    const [form] = Form.useForm();
 
     return (
-        <Modal>
+        <Modal
+            title="Add Task"
+            visible={visible}
+            destroyOnClose
+            forceRender
+            onCancel={onCancel}
+            // @ts-ignore
+            onOk={() => form.submit()}
+        >
             <Form
-                name="basic"
-                form={formRef.current!}
-                initialValues={{remember: true}}
-                onFinish={onFinish}
                 autoComplete="off"
+                form={form}
+                layout="vertical"
+                initialValues={initialValues}
+                onFinish={(values) => {
+                    onOk(values);
+                    // @ts-ignore
+                    form.resetFields();
+                    onCancel();
+                }}
             >
                 <Form.Item
-                    label="Title"
                     name="title"
-                    rules={[{required: false}]}
+                    label="Title"
+                    rules={[
+                        {required: true, message: "'Title' is required"},
+                        {
+                            max: 100,
+                            message: "'Title' can not be longer than 100 characters",
+                        },
+                    ]}
                 >
                     <Input/>
                 </Form.Item>
 
                 <Form.Item
-                    label="Description"
                     name="description"
-                    rules={[{required: false}]}
+                    label="Description"
+                    rules={[
+                        {required: true, message: "'Description' is required"},
+                        {
+                            max: 400,
+                            message: "'Description' can not be longer than 400 characters",
+                        },
+                    ]}
                 >
                     <Input/>
                 </Form.Item>
@@ -46,3 +62,5 @@ export const TaskboardItemFormModal = ({
         </Modal>
     );
 }
+
+export default TaskboardItemFormModal;

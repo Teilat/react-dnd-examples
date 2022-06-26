@@ -11,30 +11,29 @@ async function loginUser(credentials) {
             'accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(credentials.values)
     })
-        .then(async request => await request.text())
+        .then(async request => {
+            return await request.text()
+        })
 }
 
 export default function Login() {
     const navigate = useNavigate()
-    const [username, setUserName] = useState<string>();
-    const [password, setPassword] = useState<string>();
     const [error, setError] = useState<string>();
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
 
     useEffect(() => {
-        let a = Cookies.get('token')
-        if (a != undefined) {
+        if (Cookies.get("token") != undefined) {
             navigate("/taskboard", {replace: true})
+        } else {
+            setLoggedIn(false)
         }
     }, [loggedIn])
 
-    const handleSubmit = async e => {
-        e.preventDefault();
+    const onFinish = async (values: any) => {
         const err = await loginUser({
-            username,
-            password
+            values
         });
         if (err != undefined) {
             setLoggedIn(true)
@@ -44,20 +43,14 @@ export default function Login() {
         }
     }
 
-    const onFinish = (values: any) => {
-        console.log('Success:', values);
-    };
-
     const onFinishFailed = (errorInfo: any) => {
         console.log('Failed:', errorInfo);
     };
 
     return (
-        <div>
+        <div className="login-warp">
             <Form
                 name="basic"
-                labelCol={{span: 8}}
-                wrapperCol={{span: 4}}
                 initialValues={{remember: true}}
                 onFinish={onFinish}
                 onFinishFailed={onFinishFailed}

@@ -1,8 +1,6 @@
 import {DragDropContext, DragDropContextProps} from "react-beautiful-dnd";
 import {
     COLUMN_NAMES,
-    StyledContent,
-    StyledHeader,
     TaskboardColProps,
     TaskboardContent,
     TaskboardRoot
@@ -11,9 +9,8 @@ import {Column} from "./Column";
 import React, {useEffect, useMemo, useState} from "react";
 import {TaskboardData, TaskItem} from "../../tasks";
 import produce from "immer";
-import {v4 as uuid} from 'uuid';
-import {Button, Typography} from "antd";
-import {TaskboardItemFormModal} from "./TaskboardItemFormModal";
+import TaskboardItemFormModal from "./TaskboardItemFormModal";
+import {useNavigate} from "react-router-dom";
 
 let data: TaskboardData = {
     [COLUMN_NAMES.TO_DO]: [],
@@ -23,46 +20,77 @@ let data: TaskboardData = {
 }
 
 interface TaskboardProps {
-    ProjectId: string,
+    ProjectId: number,
 }
 
-export const Taskboard = ({
-                              ProjectId,
-                          }: TaskboardProps) => {
+function Taskboard({
+                       ProjectId,
+                   }: TaskboardProps) {
+
+    const [items, setItems] = useState<TaskboardData>(data);
+
+    const [isLoaded, setLoaded] = useState(false)
+    const [Reload, setReload] = useState(false)
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    const [itemToEdit, setItemToEdit] = useState<TaskItem | null>(null);
+
+    const navigate = useNavigate()
 
     useEffect(() => {
-          fetch(`http://localhost:8080/api/v1/project/task?id=${ProjectId}`, {
+        setItems(null)
+
+        fetch(`http://localhost:8080/project/task?id=${ProjectId}`, {
             method: 'GET',
+            credentials: "include",
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             }
         })
-            .then(response => {
+            .then(async response => {
                 if (response.ok) {
                     return response.text()
                 } else {
+                    if (JSON.parse(await response.text())["content"] == "Please login first") {
+                        navigate("/login", {replace: true})
+                    }
                     throw response
                 }
             })
             .then(res => {
+                let data: TaskboardData = {
+                    [COLUMN_NAMES.TO_DO]: [],
+                    [COLUMN_NAMES.IN_PROGRESS]: [],
+                    [COLUMN_NAMES.AWAITING_REVIEW]: [],
+                    [COLUMN_NAMES.DONE]: []
+                }
                 let arr: TaskItem[] = JSON.parse(res)
                 for (let i = 0; i < arr.length; i++) {
                     switch (arr[i].column as COLUMN_NAMES) {
                         case COLUMN_NAMES.TO_DO: {
-                            data[COLUMN_NAMES.TO_DO].push(arr[i]);
+                            if (!data[COLUMN_NAMES.TO_DO].includes(arr[i])) {
+                                data[COLUMN_NAMES.TO_DO].push(arr[i]);
+                            }
                             break
                         }
                         case COLUMN_NAMES.IN_PROGRESS: {
-                            data[COLUMN_NAMES.IN_PROGRESS].push(arr[i]);
+                            if (!data[COLUMN_NAMES.IN_PROGRESS].includes(arr[i])) {
+                                data[COLUMN_NAMES.IN_PROGRESS].push(arr[i]);
+                            }
                             break
                         }
                         case COLUMN_NAMES.AWAITING_REVIEW: {
-                            data[COLUMN_NAMES.AWAITING_REVIEW].push(arr[i]);
+                            if (!data[COLUMN_NAMES.AWAITING_REVIEW].includes(arr[i])) {
+                                data[COLUMN_NAMES.AWAITING_REVIEW].push(arr[i]);
+                            }
                             break
                         }
                         case COLUMN_NAMES.DONE: {
-                            data[COLUMN_NAMES.DONE].push(arr[i]);
+                            if (!data[COLUMN_NAMES.DONE].includes(arr[i])) {
+                                data[COLUMN_NAMES.DONE].push(arr[i]);
+                            }
                             break
                         }
                     }
@@ -74,12 +102,42 @@ export const Taskboard = ({
             })
             .finally(() => {
                 setLoaded(true)
+                setReload(false)
             })
-    }, [ProjectId]);
 
-    const [items, setItems] = useState<TaskboardData>(data);
+    }, [ProjectId, Reload]);
 
-    const [isLoaded, setLoaded] = useState(false)
+    const handleCreateTask = (item: TaskItem) => {
+        fetch(`http://localhost:8080/task`, {
+            method: 'POST',
+            credentials: "include",
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item)
+        }).then((res) => {
+            if (res.ok) {
+                setReload(true)
+            }
+        })
+    }
+
+    const handleUpdateTask = (item: TaskItem) => {
+        fetch(`http://localhost:8080/task`, {
+            method: 'PATCH',
+            credentials: "include",
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item)
+        }).then((res) => {
+            if (res.ok) {
+                setReload(true)
+            }
+        })
+    }
 
     const onDragEnd: DragDropContextProps['onDragEnd'] = ({
                                                               source,
@@ -102,10 +160,6 @@ export const Taskboard = ({
             })
         );
     }
-
-    const [isModalVisible, setIsModalVisible] = useState(false);
-
-    const [itemToEdit, setItemToEdit] = useState<TaskItem | null>(null);
 
     const openTaskItemModal = (itemToEdit: TaskItem | null) => {
         setItemToEdit(itemToEdit);
@@ -142,64 +196,61 @@ export const Taskboard = ({
     } else {
         return (
             <>
-                <StyledHeader>
-                    <Typography.Title level={3} type="secondary">
-                        Drag & Drop Taskboard
-                    </Typography.Title>
-                    <Button type="primary">userName</Button>
-                </StyledHeader>
-                <StyledContent>
-                    <DragDropContext onDragEnd={onDragEnd}>
-                        <TaskboardRoot>
-                            <TaskboardContent>
-                                {Object.values(COLUMN_NAMES).map((status) => (
-                                    <Column
-                                        key={status}
-                                        title={status}
-                                        items={items[status]}
-                                        onClickAdd={
-                                            status === COLUMN_NAMES.TO_DO
-                                                ? () => openTaskItemModal(null)
-                                                : undefined
-                                        }
-                                        onDelete={handleDelete}
-                                        onEdit={closeTaskItemModal}/>
-                                ))}
-                            </TaskboardContent>
-                        </TaskboardRoot>
-                    </DragDropContext>
-                    <TaskboardItemFormModal
-                        visible={isModalVisible}
-                        onCancel={closeTaskItemModal}
-                        onOk={(values) => {
-                            setItems((current) =>
-                                produce(current, (draft) => {
-                                    if (itemToEdit) {
-                                        // Editing existing item
-                                        const draftItem = Object.values(draft)
-                                            .flatMap((items) => items)
-                                            .find((item) => item.id === itemToEdit.id);
-                                        if (draftItem) {
-                                            draftItem.title = values.title;
-                                            draftItem.description = values.description;
-                                        }
-                                    } else {
-                                        // Adding new item as "to do"
-                                        draft[COLUMN_NAMES.TO_DO].push({
-                                            id: uuid(),
-                                            projectId: uuid(),
-                                            title: values.title,
-                                            description: values.description,
-                                            column: COLUMN_NAMES.TO_DO
-                                        });
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <TaskboardRoot>
+                        <TaskboardContent>
+                            {Object.values(COLUMN_NAMES).map((status) => (
+                                <Column
+                                    key={status}
+                                    title={status}
+                                    items={items[status]}
+                                    onClickAdd={
+                                        status === COLUMN_NAMES.TO_DO
+                                            ? () => openTaskItemModal(null)
+                                            : undefined
                                     }
-                                })
-                            );
-                        }}
-                        initialValues={initialValues}
-                    />
-                </StyledContent>
+                                    onDelete={handleDelete}
+                                    onEdit={closeTaskItemModal}/>
+                            ))}
+                        </TaskboardContent>
+                    </TaskboardRoot>
+                </DragDropContext>
+                <TaskboardItemFormModal
+                    visible={isModalVisible}
+                    onCancel={closeTaskItemModal}
+                    onOk={(values) => {
+                        setItems((current) =>
+                            produce(current, (draft) => {
+                                if (itemToEdit) {
+                                    // Editing existing item
+                                    const draftItem = Object.values(draft)
+                                        .flatMap((items) => items)
+                                        .find((item) => item.id === itemToEdit.id);
+                                    if (draftItem) {
+                                        draftItem.title = values.title;
+                                        draftItem.description = values.description;
+                                    }
+                                    handleUpdateTask(draftItem)
+                                } else {
+                                    // Adding new item as "to do"
+                                    let item: TaskItem = {
+                                        id: 0,
+                                        projectId: ProjectId,
+                                        title: values.title,
+                                        description: values.description,
+                                        column: COLUMN_NAMES.TO_DO
+                                    }
+                                    draft[COLUMN_NAMES.TO_DO].push(item);
+                                    handleCreateTask(item)
+                                }
+                            })
+                        );
+                    }}
+                    initialValues={initialValues}
+                />
             </>
         )
     }
 }
+
+export default Taskboard;

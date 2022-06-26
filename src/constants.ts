@@ -40,6 +40,8 @@ export const StyledHeader = styled(Header)`
 
 export const StyledContent = styled(Content)`
   background-color: ${colors.primary[6]};
+  display: flex;
+  flex-direction: row;
 `;
 
 
@@ -66,8 +68,7 @@ export const DeleteMenuItem = styled.div`
 export const TaskboardRoot = styled.div`
   min-height: 0;
   height: 100%;
-  min-width: 800px;
-  max-width: 1400px;
+  min-width: 80%;
   margin: auto;
 `;
 

@@ -45,3 +45,14 @@ p {
     align-items: center;
     border: 1px solid rgba(0,0,0,0.5);
 }
+
+.login-warp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.tree {
+    min-width: 100px;
+}
